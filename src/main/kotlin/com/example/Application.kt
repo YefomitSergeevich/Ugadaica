@@ -8,5 +8,6 @@ fun main() {
     embeddedServer(Netty, port = System.getenv("PORT").toInt()) {
         configureRouting()
         configureSerialization()
+
     }.start(wait = true)
 }
