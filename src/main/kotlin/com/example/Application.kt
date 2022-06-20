@@ -16,6 +16,7 @@ import io.ktor.jackson.*
 import kotlin.reflect.KType
 
 fun main() {
+    //embeddedServer(Netty, port = 8080, host = "localhost") {
     embeddedServer(Netty, port = System.getenv("PORT").toInt()) {
         install(ContentNegotiation) {
             jackson()
@@ -48,8 +49,8 @@ fun main() {
                 }
             })
         }
-        registerMainRoutes()
         configureSerialization()
+        registerMainRoutes()
 
     }.start(wait = true)
 }
