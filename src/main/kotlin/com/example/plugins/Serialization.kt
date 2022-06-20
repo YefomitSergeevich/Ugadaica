@@ -55,26 +55,34 @@ object Swagger {
                 }
             }
             route("game") {
-                get<IntParam, GameResponse>(
-                    info("Header Param Endpoint", "This is a Header Param Endpoint"),
+                get<GameRequest, GameResponse>(
+                    info("Trying to make a game", "Угадайте загаданное число"),
                 ) { params ->
-                    respond(GameResponse(params.int))
+                    respond(GameResponse(null, params.int))
                 }
             }
         }
     }
 
-    data class IntParam(@HeaderParam("da")  val int: Int)
-    data class GameResponse(@HeaderParam("net") var answer: Int)
+    data class GameRequest(@HeaderParam("Введите число от 1 до 3") var int: Int)
     {
-        private val rightNum = Random.nextInt(1, 3)
+        private val rightNum = Random.nextInt(1, 4)
         init {
-            if(answer == rightNum) {
-                answer.toString()
-                answer = 200
+            if(int == rightNum) {
+                int.toString()
+                int = 200
             } else {
-                answer = 400
+                int = 400
             }
+        }
+    }
+    data class GameResponse(@HeaderParam("net") var answer: String?, var code: Int)
+    {
+        init {
+            if (code == 200) {
+                answer = "Ты угадал"
+            }
+            else answer = "Ты не угадал"
         }
     }
     data class NameParam(@HeaderParam("A simple Header Param")  val name: String)
