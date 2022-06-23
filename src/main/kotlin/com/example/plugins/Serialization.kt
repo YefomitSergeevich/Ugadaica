@@ -96,18 +96,14 @@ object Swagger {
 
     data class Entr(@QueryParam("Just RNG") val guess: Int, val answer: String)
 
-    data class GameRequest(@QueryParam("Введите число от 1 до 100") val int: Int, @PathParam("Не используется") var ans: String?) {
+    data class GameRequest(@QueryParam("Введите число от 1 до 100") val int: Int) {
+        var ans: String?
         var da: Int = int
         private var da2: String = ""
         init {
 
-            if (Entries.count() < 7) {
-                if (da == rightAnswer) {
-                    da2 = "Поздравляю, ты угадал! Правильный ответ был $da"
-                    Entries.clear()
-                    rightAnswer = Random.nextInt(1, 100)
-                }
-                 else if (da > rightAnswer) {
+            if (Entries.count() < 7 && da != rightAnswer) {
+                if (da > rightAnswer) {
                     da2 = "Загаданное число меньше чем $da. Осталось ${7 - Entries.count()} попыток"
                 } else if (da < rightAnswer) {
                     da2 = "Загаданное число больше чем $da. Осталось ${7 - Entries.count()} попыток"
@@ -117,7 +113,12 @@ object Swagger {
                     Entries.clear()
                     rightAnswer = Random.nextInt(1, 100)
                 }
-            } else {
+            } else if (da == rightAnswer) {
+                da2 = "Поздравляю, ты угадал! Правильный ответ был $da"
+                Entries.clear()
+                rightAnswer = Random.nextInt(1, 100)
+            }
+            else {
                 da2 = "Ты превысил число попыток, давай заново. Правильный ответ был $rightAnswer"
                 Entries.clear()
                 rightAnswer = Random.nextInt(1, 100)
