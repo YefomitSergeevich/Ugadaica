@@ -16,8 +16,8 @@ import io.ktor.jackson.*
 import kotlin.reflect.KType
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "localhost") {
-    //embeddedServer(Netty, port = System.getenv("PORT").toInt()) {
+    //embeddedServer(Netty, port = 8080, host = "localhost") {
+    embeddedServer(Netty, port = System.getenv("PORT").toInt()) {
         install(ContentNegotiation) {
             jackson()
         }
@@ -37,8 +37,8 @@ fun main() {
                 }
             }
             // describe the server, add as many as you want
-            server("http://localhost:8080/") {
-            //server("https://fgfjdhsaryhdb.herokuapp.com/") {
+            //server("http://localhost:8080/") {
+            server("https://fgfjdhsaryhdb.herokuapp.com/") {
                 description = "Test server"
             }
             //optional custom schema object namer
