@@ -28,12 +28,11 @@ object Swagger {
             }
         }
         apiRouting {
-            route("header") {
-                get<NameParam, NameResponse>(
-                    info("Header Param Endpoint", "This is a Header Param Endpoint"),
+            route("test") {
+                get <IntParam, NameResponse>(
                     example = NameResponse("Mister")
-                ) { params ->
-                    respond(NameResponse("Hi, ${params.name}!"))
+                        ) {params ->
+                    respond(NameResponse("da"))
                 }
             }
             route("inline") {
@@ -57,16 +56,30 @@ object Swagger {
             }
             route("mini_game") {
                 get<GameMiniRequest, GameMiniResponse>(
-                    info("Trying to make a game", "Угадайте загаданное число"),
+                    info("Trying to make a game", "Угадайте загаданное число от 1 до 3"),
                 ) { params ->
                     respond(GameMiniResponse(null, params.int))
                 }
             }
-            route("true_game") {
+            route("Ugadaica") {
                 post<GameRequest, GameResponse, Unit>(
-                    info()
-                ) { params, body ->
+                    info("Угадай число", "Угадай число от 1 до 100 за 7 попыток")
+                ) { params, _ ->
                     respond(GameResponse(params.ans))
+                }
+            }
+            route("new_game") {
+                post<Unit, GameUpdate, Unit>(
+                    info("Начни с чистого листа", "Сбрасывает ходы и загаданное число в игре Ugadaica")
+                ) {params, body ->
+                    respond(GameUpdate())
+                }
+            }
+            route("choice") {
+                post<ChoiceParam, NameResponse, Unit>(
+                    info("Позволяет считерить", "Ты можешь сам задать число в игре Ugadaica")
+                ) { params, body ->
+                    respond(NameResponse("Значение загаданного числа изменено на ${params.int}"))
                 }
             }
         }
@@ -75,26 +88,40 @@ object Swagger {
     var Entries = mutableListOf(
         Entr(
             0,
-            "N"
+            "Больше"
         )
     )
 
-    var rightAnswer: Int = Random.nextInt(1, 6)
+    var rightAnswer: Int = Random.nextInt(1, 100)
 
     data class Entr(@QueryParam("Just RNG") val guess: Int, val answer: String)
 
-    data class GameRequest(@QueryParam("Введите число") var int: Int, @PathParam("Не используется") var ans: String?)
-    {
-
+    data class GameRequest(@QueryParam("Введите число от 1 до 100") val int: Int, @PathParam("Не используется") var ans: String?) {
         var da: Int = int
-        var da2: String
+        private var da2: String = ""
         init {
-            if (da == rightAnswer) {
-                da2 = "Y"
+
+            if (Entries.count() < 7) {
+                if (da == rightAnswer) {
+                    da2 = "Поздравляю, ты угадал! Правильный ответ был $da"
+                    Entries.clear()
+                    rightAnswer = Random.nextInt(1, 100)
+                }
+                 else if (da > rightAnswer) {
+                    da2 = "Загаданное число меньше чем $da. Осталось ${7 - Entries.count()} попыток"
+                } else if (da < rightAnswer) {
+                    da2 = "Загаданное число больше чем $da. Осталось ${7 - Entries.count()} попыток"
+                }
+                else {
+                    da2 = "Что то пошло не так. Давай начнем сначала"
+                    Entries.clear()
+                    rightAnswer = Random.nextInt(1, 100)
+                }
+            } else {
+                da2 = "Ты превысил число попыток, давай заново. Правильный ответ был $rightAnswer"
+                Entries.clear()
+                rightAnswer = Random.nextInt(1, 100)
             }
-             else {
-                 da2 = "N"
-             }
             val newEntry = Entr(da, da2)
             Entries.add(newEntry)
             ans = da2
@@ -103,19 +130,11 @@ object Swagger {
 
     data class GameResponse(@QueryParam("da") val answer: String?)
 
-    data class GameBody(@HeaderParam("Don't touch it") var int: Int)
-    {
-        var rightAnswer: Int = Random.nextInt(1, 3)
-        var count: Int = 0
-        var code: Int = 400
+    data class GameUpdate(@QueryParam("da") var da: String = "Игра обновлена") {
+
         init {
-            if ((rightAnswer == int)&&(count < 8)) {
-                code = 200
-                count = 0
-            }
-            else {
-                count += 1
-            }
+            Entries.clear()
+            rightAnswer = Random.nextInt(1, 100)
         }
     }
 
@@ -142,7 +161,13 @@ object Swagger {
     }
     data class NameParam(@HeaderParam("A simple Header Param")  val name: String)
 
-    data class IntParam(@HeaderParam("A simple Header Param")  val name: Int)
+    data class IntParam(@HeaderParam("A simple Header Param")  val int: Int)
+
+    data class ChoiceParam(@HeaderParam("A simple Header Param")  val int: Int) {
+        init {
+            rightAnswer = int
+        }
+    }
 
     data class NameResponse(@HeaderParam("A simple Header Param")  val name: String)
 
