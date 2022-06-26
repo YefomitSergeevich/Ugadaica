@@ -29,9 +29,9 @@ object Swagger {
         }
         apiRouting {
             route("test") {
-                get <IntParam, NameResponse>(
+                get<IntParam, NameResponse>(
                     example = NameResponse("Mister")
-                        ) {params ->
+                ) { params ->
                     respond(NameResponse("da"))
                 }
             }
@@ -65,13 +65,13 @@ object Swagger {
                 post<GameRequest, GameResponse, Unit>(
                     info("Угадай число", "Угадай число от 1 до 100 за 7 попыток")
                 ) { params, _ ->
-                    respond(GameResponse(params.ans))
+                    respond(GameResponse(params.ansOut))
                 }
             }
             route("new_game") {
                 post<Unit, GameUpdate, Unit>(
                     info("Начни с чистого листа", "Сбрасывает ходы и загаданное число в игре Ugadaica")
-                ) {params, body ->
+                ) { params, body ->
                     respond(GameUpdate())
                 }
             }
@@ -97,35 +97,34 @@ object Swagger {
     data class Entr(@QueryParam("Just RNG") val guess: Int, val answer: String)
 
     data class GameRequest(@QueryParam("Введите число от 1 до 100") val int: Int) {
-        var ans: String?
-        var da: Int = int
-        private var da2: String = ""
-        init {
+        private var guess: Int = int
+        private var answer: String = ""
+        var ansOut: String?
 
-            if (Entries.count() < 7 && da != rightAnswer) {
-                if (da > rightAnswer) {
-                    da2 = "Загаданное число меньше чем $da. Осталось ${7 - Entries.count()} попыток"
-                } else if (da < rightAnswer) {
-                    da2 = "Загаданное число больше чем $da. Осталось ${7 - Entries.count()} попыток"
-                }
-                else {
-                    da2 = "Что то пошло не так. Давай начнем сначала"
+        init {
+            if (Entries == mutableListOf(Entr(0, "Больше"))) Entries.clear()
+            val newEntry = Entr(guess, answer)
+            Entries.add(newEntry)
+            if (Entries.count() < 7 && guess != rightAnswer) {
+                if (guess > rightAnswer) {
+                    answer = "Загаданное число меньше чем $guess. Осталось ${7 - Entries.count()} попыток"
+                } else if (guess < rightAnswer) {
+                    answer = "Загаданное число больше чем $guess. Осталось ${7 - Entries.count()} попыток"
+                } else {
+                    answer = "Что то пошло не так. Давай начнем сначала"
                     Entries.clear()
                     rightAnswer = Random.nextInt(1, 100)
                 }
-            } else if (da == rightAnswer) {
-                da2 = "Поздравляю, ты угадал! Правильный ответ был $da"
+            } else if (guess == rightAnswer) {
+                answer = "Поздравляю, ты угадал! Правильный ответ был $guess"
+                Entries.clear()
+                rightAnswer = Random.nextInt(1, 100)
+            } else if (Entries.count() >= 7) {
+                answer = "Ты превысил число попыток, давай заново. Правильный ответ был $rightAnswer"
                 Entries.clear()
                 rightAnswer = Random.nextInt(1, 100)
             }
-            else {
-                da2 = "Ты превысил число попыток, давай заново. Правильный ответ был $rightAnswer"
-                Entries.clear()
-                rightAnswer = Random.nextInt(1, 100)
-            }
-            val newEntry = Entr(da, da2)
-            Entries.add(newEntry)
-            ans = da2
+            ansOut = answer
         }
     }
 
@@ -139,11 +138,11 @@ object Swagger {
         }
     }
 
-    data class GameMiniRequest(@HeaderParam("Введите число от 1 до 3") var int: Int)
-    {
+    data class GameMiniRequest(@HeaderParam("Введите число от 1 до 3") var int: Int) {
         private val rightNum = Random.nextInt(1, 4)
+
         init {
-            if(int == rightNum) {
+            if (int == rightNum) {
                 int.toString()
                 int = 200
             } else {
@@ -151,26 +150,26 @@ object Swagger {
             }
         }
     }
-    data class GameMiniResponse(@HeaderParam("net") var answer: String?, var code: Int)
-    {
+
+    data class GameMiniResponse(@HeaderParam("net") var answer: String?, var code: Int) {
         init {
             if (code == 200) {
                 answer = "Ты угадал"
-            }
-            else answer = "Ты не угадал"
+            } else answer = "Ты не угадал"
         }
     }
-    data class NameParam(@HeaderParam("A simple Header Param")  val name: String)
 
-    data class IntParam(@HeaderParam("A simple Header Param")  val int: Int)
+    data class NameParam(@HeaderParam("A simple Header Param") val name: String)
 
-    data class ChoiceParam(@HeaderParam("A simple Header Param")  val int: Int) {
+    data class IntParam(@HeaderParam("A simple Header Param") val int: Int)
+
+    data class ChoiceParam(@HeaderParam("A simple Header Param") val int: Int) {
         init {
             rightAnswer = int
         }
     }
 
-    data class NameResponse(@HeaderParam("A simple Header Param")  val name: String)
+    data class NameResponse(@HeaderParam("A simple Header Param") val name: String)
 
     data class RNGParam(@PathParam("Just RNG") val num: Int = Random.nextInt(1, 100))
 
