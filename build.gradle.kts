@@ -33,7 +33,7 @@ buildscript {
 
 dependencies {
     implementation("io.ktor:ktor-jackson:$ktor_version")
-    implementation ("com.github.papsign:Ktor-OpenAPI-Generator:-SNAPSHOT")
+    implementation ("com.github.papsign:Ktor-OpenAPI-Generator:0.3-beta.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
